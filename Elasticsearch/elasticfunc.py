@@ -23,7 +23,7 @@ def get_data_test_inn(inn: str):
     return resp["hits"]["hits"][0]["_source"]
 
 
-def get_data_all_info(inn="", fn="", sn="", p="", name=""):
+def get_data_all_info(inn="", firstname="", lastname="", patronimyc="", name=""):
     resp = es.search(index='private_face', query={
         "bool": {
             "should": [
@@ -31,13 +31,13 @@ def get_data_all_info(inn="", fn="", sn="", p="", name=""):
                     "match": {"inn": inn}
                 },
                 {
-                    "match": {"firstname": fn}
+                    "match": {"firstname": firstname}
                 },
                 {
-                    "match": {"secondname": sn}
+                    "match": {"lastname": lastname}
                 },
                 {
-                    "match": {"patronymic": p}
+                    "match": {"patronymic": patronimyc}
                 },
                 {
                     "match": {"name": name}
@@ -52,5 +52,5 @@ def get_data_all_info(inn="", fn="", sn="", p="", name=""):
 # print(GetDataId(1))
 # print(GetDataText("Иванов"))
 # print(GetDataTestInn("7712345678900"))
-print(GetDataAllInfo(inn="7712345678904", name="Best company"))
-print(GetDataAllInfo(inn="7712345678900"))
+print(get_data_all_info(inn="7712345678904", lastname="Шульц"))
+print(get_data_all_info(inn="7712345678900"))
