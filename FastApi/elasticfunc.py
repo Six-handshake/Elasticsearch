@@ -1,7 +1,7 @@
 from elasticsearch import Elasticsearch
 from datetime import datetime
 
-es = Elasticsearch(hosts="http://46.48.3.74:9200")
+es = Elasticsearch(hosts="http://localhost:9200")
 
 
 def get_data_id(doc_id: str):
@@ -52,5 +52,5 @@ def get_data_all_info(inn="", firstname="", lastname="", patronimyc="", name="")
 # print(GetDataId(1))
 # print(GetDataText("Иванов"))
 # print(GetDataTestInn("7712345678900"))
-print(get_data_all_info(inn="7712345678904", lastname="Шульц"))
-print(get_data_all_info(inn="7712345678900"))
+#print(get_data_all_info(inn="7712345678904", lastname="Шульц"))
+#print(get_data_all_info(inn="7712345678900"))
