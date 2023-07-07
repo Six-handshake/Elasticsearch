@@ -4,15 +4,15 @@ import sys
 from typing import Union
 import json
 import elasticfunc
+
 sys.path.append('/home/serv/elasticsearch/Elasticsearch')
 app = FastAPI()
 
-#React connects
+# React connects
 origins = [
     "http://localhost:8000",
     "localhost:8000"
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,35 +35,36 @@ todos = [
     }
 ]
 
+
 @app.get("/api", tags=["root"])
 async def read_root() -> dict:
     return {"data": [{"message": " Hello World"}]}
 
-@app.get("/api/todo",tags=["todos"])
-async def get_todos()->dict:
-	return {"data":todos}
 
-@app.post("/api/test_data", tags=["test"])
+@app.get("/api/todo", tags=["todos"])
+async def get_todos() -> dict:
+    return {"data": todos}
+
+
+@app.post("/api/todo", tags=["test"])
 async def add_test_data(test_data: dict) -> dict:
-    test.append(test_data)
+    todos.append(test_data)
     return {
-        "data": { "Test data added." }
+        "data": {"Test data added."}
     }
 
-@app.get("/api/test_data/{doc_id}", tags=["test"])
-async def get_test_data(doc_id : str) -> dict:
-    return { "data": test }
 
-@app.get("/api/id/{doc_id}",tags=["main"])
-async def get_doc_for_id(doc_id : str, q: Union[str, None] = None) -> dict:
+@app.get("/api/id/{doc_id}", tags=["main"])
+async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     print("start")
     return elasticfunc.get_data_id(doc_id)
 
-@app.get("/api/test",tags=["main"])
-async def get_doc_for_text(q: Union[str, None] = None) -> dict:
-    print(q)
-    return elasticfunc.get_data_text("erewr")
 
-@app.get("/api/inn/{inn}",tags=["main"])
-async def get_doc_for_inn(inn : str, q: Union[str, None] = None) -> dict:
+@app.get("/api/find", tags=["main"])
+async def get_doc_for_text(data: dict) -> dict:
+    return elasticfunc.get_data_text(data['index1'])
+
+
+@app.get("/api/inn/{inn}", tags=["main"])
+async def get_doc_for_inn(inn: str, q: Union[str, None] = None) -> dict:
     return elasticfunc.get_data_test_inn(inn)
