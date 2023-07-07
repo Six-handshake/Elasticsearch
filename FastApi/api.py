@@ -60,8 +60,9 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     return elasticfunc.get_data_id(doc_id)
 
 
-@app.get("/api/find", tags=["main"])
+@app.post("/api/find", tags=["todos"])
 async def get_doc_for_text(data: dict) -> dict:
+    print(data)
     return elasticfunc.get_data_text(data['index1'])
 
 

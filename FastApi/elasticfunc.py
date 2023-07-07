@@ -2,7 +2,7 @@ from elasticsearch import Elasticsearch
 from datetime import datetime
 import requests
 
-es = Elasticsearch(hosts="http://46.48.3.74:9200")
+es = Elasticsearch(hosts="http://localhost:9200")
 
 
 def get_data_id(doc_id: str):
@@ -11,17 +11,22 @@ def get_data_id(doc_id: str):
 
 
 def get_data_text(full_text: str):
+    print(full_text)
     tokens = es.indices.analyze(index='private_face', analyzer="standard", field='text', text=full_text)['tokens']
     query = [{"multi_match":
                   {'query': token['token'],
                    'fields': "*"}}
              for token in tokens]
+    print(query)
     resp = es.search(index='private_face', query={
         "bool": {
             "should": query
         }
     })
-    return [resp["hits"]["hits"][0]["_source"]]
+    print(resp)
+    print("------------------------------")
+    print(resp['hits']['hits'][0]['_source'])
+    return resp["hits"]["hits"][0]["_source"]
 
 
 # delete?
