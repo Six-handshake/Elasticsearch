@@ -20,13 +20,16 @@ def get_data_text(full_text: str):
     print(query)
     resp = es.search(index='private_face', query={
         "bool": {
-            "should": query
+            "must": query
         }
     })
     print(resp)
     print("------------------------------")
-    print(resp['hits']['hits'][0]['_source'])
-    return resp["hits"]["hits"][0]["_source"]
+    if(resp['hits']['total']['value']!=0):
+        print(resp['hits']['hits'][0]['_source'])
+        return resp["hits"]["hits"][0]["_source"]
+    else:
+        return [{'message': 'Not Found'}]
 
 
 # delete?
@@ -40,10 +43,10 @@ def get_data_test_inn(inn: str):
 
 
 # delete?
-def get_data_all_info(inn="", firstname="", lastname="", patronimyc="", name=""):
+def get_data_all_info(inn="", firstname="", lastname="", patronymic="", name=""):
     resp = es.search(index='private_face', query={
         "bool": {
-            "should": [
+            "Should": [
                 {
                     "match": {"inn": inn}
                 },
@@ -54,7 +57,7 @@ def get_data_all_info(inn="", firstname="", lastname="", patronimyc="", name="")
                     "match": {"lastname": lastname}
                 },
                 {
-                    "match": {"patronymic": patronimyc}
+                    "match": {"patronymic": patronymic}
                 },
                 {
                     "match": {"name": name}
@@ -69,5 +72,5 @@ def get_data_all_info(inn="", firstname="", lastname="", patronimyc="", name="")
 # print(GetDataText("Иванов"))
 # print(GetDataTestInn("7712345678900"))
 # print(get_data_all_info(inn="7712345678904", lastname="Шульц"))
-# print(get_data_all_info(inn="7712345678900"))
-# print(get_data_text("Влад Тарасович"))
+#print(get_data_all_info(inn="7712345678900"))
+print(get_data_text("Владew Тарасович"))
