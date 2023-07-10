@@ -17,16 +17,12 @@ def get_data_text(full_text: str):
                   {'query': token['token'],
                    'fields': "*"}}
              for token in tokens]
-    print(query)
     resp = es.search(index='private_face', query={
         "bool": {
             "must": query
         }
     })
-    print(resp)
-    print("------------------------------")
-    if(resp['hits']['total']['value']!=0):
-        print(resp['hits']['hits'][0]['_source'])
+    if resp['hits']['total']['value']!=0:
         return resp["hits"]["hits"][0]["_source"]
     else:
         return [{'message': 'Not Found'}]
