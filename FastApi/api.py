@@ -70,7 +70,19 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     return elasticfunc.get_data_id(doc_id)
 
 
-@app.post("/api/find", tags=["main"])
+@app.post("/api/find", tags=["main(test)"])
 async def get_doc_for_text(data: dict) -> dict:
-    print(data)
-    return elasticfunc.get_data_text(data['index1'])
+    index1_id = elasticfunc.find_id_doc(data['index1'])
+    index2_id = None
+    if 'index2' in data:
+        if data['index2'] != "":
+            index2_id = elasticfunc.find_id_doc(data['index2'])
+
+    #TODO: Запрос к postgres
+    res = None
+    if index2_id is not None:
+        pass
+    else:
+        pass
+
+    return elasticfunc.get_data_id(index1_id)

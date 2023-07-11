@@ -30,6 +30,7 @@ def get_data_text(full_text: str):
 
 def check_response(resp):
     if resp['hits']['total']['value'] != 0:
+        resp['hits']['hits'][0]['_source']['id'] = resp["hits"]["hits"][0]["_id"]
         return resp["hits"]["hits"][0]["_source"]
     else:
         return {'message': 'Not Found'}
@@ -81,7 +82,7 @@ def filling_data_v2(data:list) -> list:
     return res
 
 # test
-# pprint(get_data_id(33060))
+# print(get_data_id(6434))
 # print(get_data_all_info(inn="7712345678904", lastname="Шульц"))
 # print(get_data_all_info(inn="7712345678900"))
 # print(get_data_text("Владew Тарасович"))
@@ -93,4 +94,8 @@ def filling_data_v2(data:list) -> list:
 #print("--------------------------------------------------------------------------")
 #print("\n\n")
 #pprint(filling_data_v2(test_data_from_db))
+<<<<<<< HEAD
 pprint(find_id_doc("Влад Тарасович"))
+=======
+#pprint(find_id_doc("Влад Тарасович"))
+>>>>>>> be338a5e76ca76f2f9531eebf79a0f1eb7d9a98c
