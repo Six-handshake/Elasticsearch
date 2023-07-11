@@ -4,6 +4,7 @@ import sys
 from typing import Union
 import json
 import elasticfunc
+import psycopg2 as pg
 
 sys.path.append('/home/serv/elasticsearch/Elasticsearch')
 app = FastAPI()
@@ -52,7 +53,6 @@ async def add_test_data(test_data: dict) -> dict:
     return {
         "data": {"Test data added."}
     }
-
 
 @app.get("/api/id/{doc_id}", tags=["main"])
 async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
