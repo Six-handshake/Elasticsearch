@@ -30,9 +30,9 @@ def get_data_text(full_text: str):
 
 def check_response(resp):
     if resp['hits']['total']['value'] != 0:
-        return [resp["hits"]["hits"][0]["_source"]]
+        return resp["hits"]["hits"][0]["_source"]
     else:
-        return [{'message': 'Not Found'}]
+        return {'message': 'Not Found'}
 
 
 def find_id_doc(full_text: str):
