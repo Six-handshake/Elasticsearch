@@ -93,9 +93,5 @@ def filling_data_v2(data:list) -> list:
 #print("\n\n")
 #print("--------------------------------------------------------------------------")
 #print("\n\n")
-#pprint(filling_data_v2(test_data_from_db))
-<<<<<<< HEAD
-pprint(find_id_doc("Влад Тарасович"))
-=======
+#pprint(filling_data_v2(test_data_from_db)
 #pprint(find_id_doc("Влад Тарасович"))
->>>>>>> be338a5e76ca76f2f9531eebf79a0f1eb7d9a98c
