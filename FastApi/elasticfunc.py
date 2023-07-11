@@ -36,22 +36,23 @@ def check_response(resp):
         return {'message': 'Not Found'}
 
 
-def find_id_doc(full_text: str, indexes = ['private_face','legal_face']):
+def find_id_doc(full_text: str, indexes = ['private_face','legal_face'], regions = []):
     tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
-    resp = get_response(indexes, tokens)
+    resp = get_response(indexes, tokens, regions)
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_id"]
     else:
         return 'Not Found'
 
 
-def get_response(indexes, tokens):
+def get_response(indexes, tokens, regions):
     query = [{"multi_match":
                   {'query': token['token'],
                    'fields': "*"}}
              for token in tokens]
     if 'legal_face' in indexes:
-        query.append({'match': {'region'}})
+        for region in regions:
+            query.append({'match': {'region' : region}})
     resp = es.search(index=indexes, query={
         "bool": {
             "must": query
