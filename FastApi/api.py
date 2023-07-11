@@ -46,7 +46,7 @@ async def get_todos() -> dict:
     return {"data": todos}
 
 
-@app.post("/api/todo", tags=["test"])
+@app.post("/api/todo", tags=["todos"])
 async def add_test_data(test_data: dict) -> dict:
     todos.append(test_data)
     return {
@@ -60,12 +60,7 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     return elasticfunc.get_data_id(doc_id)
 
 
-@app.post("/api/find", tags=["todos"])
+@app.post("/api/find", tags=["main"])
 async def get_doc_for_text(data: dict) -> dict:
     print(data)
     return elasticfunc.get_data_text(data['index1'])
-
-
-@app.get("/api/inn/{inn}", tags=["main"])
-async def get_doc_for_inn(inn: str, q: Union[str, None] = None) -> dict:
-    return elasticfunc.get_data_test_inn(inn)

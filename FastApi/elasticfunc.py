@@ -60,41 +60,6 @@ def filling_data_v2(data:list) -> list:
         res.append(doc)
     return res
 
-# delete?
-def get_data_test_inn(inn: str):
-    resp = es.search(index='private_face', query={
-        "match": {
-            "inn": inn
-        }
-    })
-    return resp["hits"]["hits"][0]["_source"]
-
-
-# delete?
-def get_data_all_info(inn="", firstname="", lastname="", patronymic="", name=""):
-    resp = es.search(index='private_face', query={
-        "bool": {
-            "Should": [
-                {
-                    "match": {"inn": inn}
-                },
-                {
-                    "match": {"firstname": firstname}
-                },
-                {
-                    "match": {"lastname": lastname}
-                },
-                {
-                    "match": {"patronymic": patronymic}
-                },
-                {
-                    "match": {"name": name}
-                }
-            ]
-        }
-    })
-    return resp
-
 # test
 #print(get_data_id(1))
 # print(get_data_all_info(inn="7712345678904", lastname="Шульц"))
