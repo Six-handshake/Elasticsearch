@@ -3,9 +3,9 @@ from datetime import datetime
 import requests
 from pprint import pprint
 #On local connect pc
-es = Elasticsearch(hosts="http://46.48.3.74:9200")
+#es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
-#es = Elasticsearch(hosts="http://localhost:9200")
+es = Elasticsearch(hosts="http://localhost:9200")
 
 
 def get_data_id(doc_id: str) -> dict:
