@@ -77,7 +77,7 @@ async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool =
     if f_person:
         indexes.append(default_indexes[0])
     if f_company:
-        indexes.append(default_indexes[1]))
+        indexes.append(default_indexes[1])
     if len(indexes) <= 0:
         return {"message":"Error: Don't select type obj found"}
     index1_id = elasticfunc.find_id_doc(data['index1'], indexes)
