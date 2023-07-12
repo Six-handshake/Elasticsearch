@@ -52,11 +52,17 @@ def get_response(indexes, tokens, regions):
              for token in tokens]
     if 'legal_face' in indexes:
         for region in regions:
-            query.append({'match': {'region' : region}})
+            pass
+            #query.append({'match': {'region' : region}})
+    pprint(query)
     resp = es.search(index=indexes, query={
         "bool": {
             "must": query
-        }
+        },
+        "filter": {
+        "terms": {
+            "region": regions
+        }}
     })
     return resp
 
@@ -66,7 +72,9 @@ def filling_data(data:list) -> list:
     for item in data:
         doc = dict()
         doc['parent'] = get_data_id(str(item['parent']))
+        doc['parent']['kind'] = item['kind']
         doc['child'] = get_data_id(str(item['child']))
+        doc['child']['kind'] = item['kind']
         doc['depth'] = item['depth']
         res.append(doc)
     return res

@@ -72,7 +72,7 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
 
 
 @app.post("/api/find", tags=["main(test)"])
-async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool = False) -> dict:
+async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool = False, regions: list = []) -> dict:
     indexes = []
     if f_person:
         indexes.append(default_indexes[0])
@@ -80,11 +80,11 @@ async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool =
         indexes.append(default_indexes[1])
     if len(indexes) <= 0:
         return {"message":"Error: Don't select type obj found"}
-    index1_id = elasticfunc.find_id_doc(data['index1'], indexes)
+    index1_id = elasticfunc.find_id_doc(data['index1'], indexes, regions)
     index2_id = None
     if 'index2' in data:
         if data['index2'] != "":
-            index2_id = elasticfunc.find_id_doc(data['index2'], indexes)
+            index2_id = elasticfunc.find_id_doc(data['index2'], indexes, regions)
 
     #TODO: Запрос к postgres
     res = None
