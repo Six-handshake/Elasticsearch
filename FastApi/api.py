@@ -4,8 +4,10 @@ import sys
 from typing import Union
 import json
 import elasticfunc
-
+import psycopg2 as pg
+sys.path.append('/home/serv/postgre/Postgres/src')
 sys.path.append('/home/serv/elasticsearch/Elasticsearch')
+import json_loader
 app = FastAPI()
 
 # React connects
@@ -36,6 +38,10 @@ todos = [
         "message": "Cycle around town."
     }
 ]
+
+@app.get("/api/p_test",tags=["p_test"])
+async def p_test():
+    return json_loader.generate_json("72","54")
 
 
 @app.get("/api", tags=["root"])
