@@ -36,23 +36,24 @@ def check_response(resp):
         return {'message': 'Not Found'}
 
 
-def find_id_doc(full_text: str, indexes = ['private_face','legal_face'], regions = []):
+def find_id_doc(full_text: str, indexes = ['private_face','legal_face']):
     tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
-    resp = get_response(indexes, tokens, regions)
+    resp = get_response(indexes, tokens)
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_id"]
     else:
         return 'Not Found'
 
 
-def get_response(indexes, tokens, regions):
+def get_response(indexes, tokens):
     query = [{"multi_match":
                   {'query': token['token'],
                    'fields': "*"}}
              for token in tokens]
     if 'legal_face' in indexes:
-        for region in regions:
-            query.append({'match': {'region' : region}})
+        pass
+            #query.append({'match': {'region' : region}})
+    pprint(query)
     resp = es.search(index=indexes, query={
         "bool": {
             "must": query
@@ -66,7 +67,9 @@ def filling_data(data:list) -> list:
     for item in data:
         doc = dict()
         doc['parent'] = get_data_id(str(item['parent']))
+        doc['parent']['kind'] = item['kind']
         doc['child'] = get_data_id(str(item['child']))
+        doc['child']['kind'] = item['kind']
         doc['depth'] = item['depth']
         res.append(doc)
     return res
