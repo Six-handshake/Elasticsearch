@@ -4,10 +4,9 @@ import sys
 from typing import Union
 import json
 import elasticfunc
-import psycopg2 as pg
 sys.path.append('/home/serv/postgre/Postgres/src')
 sys.path.append('/home/serv/elasticsearch/Elasticsearch')
-import json_loader
+#import json_loader
 app = FastAPI()
 
 # React connects
@@ -39,7 +38,7 @@ todos = [
     }
 ]
 
-@app.get("/api/p_test",tags=["p_test"])
+@app.post("/api/p_test",tags=["p_test"])
 async def p_test():
     return json_loader.generate_json("72","54")
 
@@ -78,7 +77,7 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
 
 
 @app.post("/api/find", tags=["main(test)"])
-async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool = False, regions: list = []) -> dict:
+async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool = False) -> dict:
     indexes = []
     if f_person:
         indexes.append(default_indexes[0])
@@ -86,17 +85,20 @@ async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool =
         indexes.append(default_indexes[1])
     if len(indexes) <= 0:
         return {"message":"Error: Don't select type obj found"}
-    index1_id = elasticfunc.find_id_doc(data['index1'], indexes, regions)
+    index1_id = elasticfunc.find_id_doc(data['index1'], indexes)
     index2_id = None
     if 'index2' in data:
         if data['index2'] != "":
-            index2_id = elasticfunc.find_id_doc(data['index2'], indexes, regions)
+            index2_id = elasticfunc.find_id_doc(data['index2'], indexes)
 
     #TODO: Запрос к postgres
+    print(index1_id, index2_id)
     res = None
     if index2_id is not None:
-        pass
+        data = json_loader.generate_json(index1_id, index2_id)
     else:
         pass
-
-    return elasticfunc.get_data_id(index1_id)
+    if data != "null":
+        return elasticfunc.filling_data_v2(data)
+    else:
+        return {"message": "Not found agent's links"}
