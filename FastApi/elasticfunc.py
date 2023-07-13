@@ -55,13 +55,24 @@ def find_doc_filter(full_text: str, regions:list=[], okveds:list = [], indexes =
              for token in tokens]
     resp = es.search(index=indexes, query={
         "bool": {
-            "must": query,
+            "should": [{
+                "multi_match":{
+                    "query": full_text,
+                    'fields': ["inn", 'name', 'first_name','last_name', 'patronymic'],
+                    "auto_generate_synonyms_phrase_query": True,
+                    "fuzziness": 2,
+                    #"minimum_should_match": "70%",
+                    "operator": "or"
+                }
+            }],
+            "minimum_should_match": 1,
             "filter":[
                 {"terms":{"region":regions}},
                 {"terms":{"okved":okveds}}
             ]
         }
     })
+    pprint(resp)
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_source"]
     else:
@@ -96,6 +107,7 @@ def filling_data(data:list) -> list:
         doc['depth'] = item['depth']
         res.append(doc)
     return res
+
 def create_node(obj_id:str, depth:str, child_id:str = "") -> dict:
     res = dict()
     resp = get_data_id(obj_id)
