@@ -3,15 +3,18 @@ from datetime import datetime
 import requests
 from pprint import pprint
 #On local connect pc
-#es = Elasticsearch(hosts="http://46.48.3.74:9200")
+es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
-es = Elasticsearch(hosts="http://localhost:9200")
+#es = Elasticsearch(hosts="http://localhost:9200")
 
 
-def get_data_id(doc_id: str) -> dict:
+def old_get_data_id(doc_id: str) -> dict:
     resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
     return check_response(resp)
 
+def get_data_id(doc_id: str) -> dict:
+    resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
+    return resp
 
 def get_data_text(full_text: str):
     print(full_text)
@@ -30,7 +33,6 @@ def get_data_text(full_text: str):
 
 def check_response(resp):
     if resp['hits']['total']['value'] != 0:
-        resp['hits']['hits'][0]['_source']['id'] = resp["hits"]["hits"][0]["_id"]
         return resp["hits"]["hits"][0]["_source"]
     else:
         return {'message': 'Not Found'}
@@ -74,24 +76,32 @@ def filling_data(data:list) -> list:
         res.append(doc)
     return res
 
+def create_node(obj_id:str, depth:str, child_id:str = "") -> dict:
+    res = dict()
+    resp = get_data_id(obj_id)
+    res['id'] = child_id+'_'+obj_id if child_id != "" else obj_id
+    res['info'] = check_response(resp)
+    res['type'] = resp['hits']['hits'][0]['_index']
+    res['depth'] = depth
+    return res
+
+def create_edge(item: dict):
+    return {'parent_id': item['child']+"_"+item['parent'],
+            'child_id': item['child'],
+            'kind': item['kind']}
+
 def filling_data_v2(data:list) -> list:
-    res = []
+    nodes = []
+    edge = []
     last_child = -1
     doc = dict()
     for item in data:
         if item['child'] != last_child:
+            nodes.append(create_node(item['child'], item['depth']))
             last_child = item['child']
-            if len(doc)>0:
-                res.append(doc)
-            doc = dict()
-            doc['child'] = get_data_id(str(item['child']))
-            doc['depth'] = item['depth']
-            doc['parents'] = list()
-
-        doc['parents'].append(get_data_id(str(item['parent'])))
-    if len(doc) > 0:
-        res.append(doc)
-    return res
+        nodes.append(create_node(item['parent'], item['depth'], item['child']))
+        edge.append(create_edge(item))
+    return nodes, edge
 
 # test
 # print(get_data_id(6434))
