@@ -7,7 +7,7 @@ import elasticfunc
 from pprint import pprint
 sys.path.append('/home/serv/postgre/Postgres/src')
 sys.path.append('/home/serv/elasticsearch/Elasticsearch')
-import json_loader
+#import json_loader
 app = FastAPI()
 
 # React connects
