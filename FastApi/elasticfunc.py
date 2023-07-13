@@ -128,19 +128,12 @@ def filling_data_v2(data:list) -> list:
     nodes = []
     edge = []
     last_child = -1
-<<<<<<< HEAD
-    doc = dict()
-    print(data)
-    for item in data:
-        print(item)
-=======
     last_depth = -1
     depth_y = 0
     for item in data:
         if last_depth != item['depth']:
             depth_y = 0
             last_depth = item['depth']
->>>>>>> a80d52409154cb3baa2d3aaaf90aa8c560b12876
         if item['child'] != last_child:
             nodes.append(create_node(obj_id = item['child'],
                                      depth_x = item['depth'],
