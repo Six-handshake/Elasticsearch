@@ -2,6 +2,7 @@ from elasticsearch import Elasticsearch
 from datetime import datetime
 import requests
 from pprint import pprint
+import json
 #On local connect pc
 #es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
@@ -76,7 +77,7 @@ def filling_data(data:list) -> list:
 
 def filling_data_v2(data:list) -> list:
     res = []
-    last_child = -1
+    last_child = "-1"
     doc = dict()
     for item in data:
         if item['child'] != last_child:
@@ -91,6 +92,7 @@ def filling_data_v2(data:list) -> list:
         doc['parents'].append(get_data_id(str(item['parent'])))
     if len(doc) > 0:
         res.append(doc)
+    pprint(res)
     return res
 
 # test
