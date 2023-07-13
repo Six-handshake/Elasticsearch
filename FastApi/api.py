@@ -80,6 +80,10 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     print("start")
     return elasticfunc.get_data_id(doc_id)
 
+@app.post("/api/test_filter", tags=["test"])
+async def get_test_filter(data: dict, regions:list = [], okved:list = []) -> dict:
+    return elasticfunc.find_doc_filter(data['index1'], regions, okved)
+
 
 @app.post("/api/find", tags=["main(test)"])
 async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool = False) -> dict:
