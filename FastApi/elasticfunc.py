@@ -2,10 +2,11 @@ from elasticsearch import Elasticsearch
 from datetime import datetime
 import requests
 from pprint import pprint
+import json
 #On local connect pc
-es = Elasticsearch(hosts="http://46.48.3.74:9200")
+#es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
-#es = Elasticsearch(hosts="http://localhost:9200")
+es = Elasticsearch(hosts="http://localhost:9200")
 
 
 def old_get_data_id(doc_id: str) -> dict:
@@ -75,20 +76,6 @@ def filling_data(data:list) -> list:
         doc['depth'] = item['depth']
         res.append(doc)
     return res
-
-def create_node(obj_id:str, depth:str, child_id:str = "") -> dict:
-    res = dict()
-    resp = get_data_id(obj_id)
-    res['id'] = child_id+'_'+obj_id if child_id != "" else obj_id
-    res['info'] = check_response(resp)
-    res['type'] = resp['hits']['hits'][0]['_index']
-    res['depth'] = depth
-    return res
-
-def create_edge(item: dict):
-    return {'parent_id': item['child']+"_"+item['parent'],
-            'child_id': item['child'],
-            'kind': item['kind']}
 
 def filling_data_v2(data:list) -> list:
     nodes = []
