@@ -115,6 +115,7 @@ def create_node(obj_id:str, depth:str, child_id:str = "") -> dict:
     res['info'] = check_response(resp)
     res['type'] = resp['hits']['hits'][0]['_index']
     res['depth'] = depth
+    res['is_child'] = True if child_id == "" else False
     return res
 
 def create_edge(item: dict):
