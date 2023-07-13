@@ -4,9 +4,9 @@ import requests
 from pprint import pprint
 import json
 #On local connect pc
-es = Elasticsearch(hosts="http://46.48.3.74:9200")
+#es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
-#es = Elasticsearch(hosts="http://localhost:9200")
+es = Elasticsearch(hosts="http://localhost:9200")
 
 
 def old_get_data_id(doc_id: str) -> dict:
@@ -95,7 +95,9 @@ def filling_data_v2(data:list) -> list:
     edge = []
     last_child = -1
     doc = dict()
+    print(data)
     for item in data:
+        print(item)
         if item['child'] != last_child:
             nodes.append(create_node(item['child'], item['depth']))
             last_child = item['child']

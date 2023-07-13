@@ -7,7 +7,7 @@ import elasticfunc
 from pprint import pprint
 sys.path.append('/home/serv/postgre/Postgres/src')
 sys.path.append('/home/serv/elasticsearch/Elasticsearch')
-#import json_loader
+import json_loader
 app = FastAPI()
 
 # React connects
@@ -104,7 +104,7 @@ async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool =
     else:
         pass
     if data != "null":
-        nodes, edges = elasticfunc.filling_data_v2(data)
+        nodes, edges = elasticfunc.filling_data_v2(json.loads(data))
         return {'nodes': nodes,
                 'edges':edges}
     else:
