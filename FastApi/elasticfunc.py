@@ -108,13 +108,14 @@ def filling_data(data:list) -> list:
         res.append(doc)
     return res
 
-def create_node(obj_id:str, depth:str, child_id:str = "") -> dict:
+def create_node(obj_id:str, depth_x:str, depth_y:str,child_id:str = "") -> dict:
     res = dict()
     resp = get_data_id(obj_id)
     res['id'] = child_id+'_'+obj_id if child_id != "" else obj_id
     res['info'] = check_response(resp)
     res['type'] = resp['hits']['hits'][0]['_index']
-    res['depth'] = depth
+    res['depth_x'] = depth_x
+    res['depth_y'] = depth_y
     res['is_child'] = True if child_id == "" else False
     return res
 
@@ -127,12 +128,23 @@ def filling_data_v2(data:list) -> list:
     nodes = []
     edge = []
     last_child = -1
-    doc = dict()
+    last_depth = -1
+    depth_y = 0
     for item in data:
+        if last_depth != item['depth']:
+            depth_y = 0
+            last_depth = item['depth']
         if item['child'] != last_child:
-            nodes.append(create_node(item['child'], item['depth']))
+            nodes.append(create_node(obj_id = item['child'],
+                                     depth_x = item['depth'],
+                                     depth_y = depth_y))
+            depth_y+=1
             last_child = item['child']
-        nodes.append(create_node(item['parent'], item['depth'], item['child']))
+        nodes.append(create_node(obj_id = item['parent'],
+                                 depth_x = item['depth'],
+                                 depth_y = depth_y,
+                                 child_id = item['child']))
+        depth_y+=1
         edge.append(create_edge(item))
     return nodes, edge
 
