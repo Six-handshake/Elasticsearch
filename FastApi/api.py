@@ -4,9 +4,10 @@ import sys
 from typing import Union
 import json
 import elasticfunc
+from pprint import pprint
 sys.path.append('/home/serv/postgre/Postgres/src')
 sys.path.append('/home/serv/elasticsearch/Elasticsearch')
-import json_loader
+#import json_loader
 app = FastAPI()
 
 # React connects
@@ -67,8 +68,12 @@ async def test_front_v1() -> list:
     return elasticfunc.filling_data(test_data_from_db)
 
 @app.get('/api/front_v2',tags=['front-test'])
-async def test_front_v2() -> list:
-    return elasticfunc.filling_data_v2(test_data_from_db)
+async def test_front_v2() -> dict:
+    nodes, edges = elasticfunc.filling_data_v2(test_data_from_db)
+    pprint(nodes)
+    pprint(edges)
+    return {"nodes": nodes,
+            "edges": edges}
 
 @app.get("/api/id/{doc_id}", tags=["main"])
 async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
@@ -99,6 +104,8 @@ async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool =
     else:
         pass
     if data != "null":
-        return {"data": elasticfunc.filling_data_v2(json.loads(data))}
+        nodes, edges = elasticfunc.filling_data_v2(data)
+        return {'nodes': nodes,
+                'edges':edges}
     else:
         return {"message": "Not found agent's links"}
