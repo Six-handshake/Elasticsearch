@@ -16,8 +16,6 @@ origins = [
     "localhost:8000"
 ]
 
-default_indexes = ['private_face', 'legal_face']
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -468,19 +466,18 @@ async def get_test_filter(data: dict, regions:list = [], okved:list = []) -> dic
 
 
 @app.post("/api/find", tags=["main(test)"])
-async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool = False) -> dict:
-    indexes = []
-    if f_person:
-        indexes.append(default_indexes[0])
-    if f_company:
-        indexes.append(default_indexes[1])
-    if len(indexes) <= 0:
+async def get_doc_for_text(data: dict) -> dict:
+    index1_indexes = elasticfunc.get_indexes(data['index1']['is_person'], data['index1']['is_company'])
+    if len(index1_indexes) <= 0:
         return {"message":"Error: Don't select type obj found"}
-    index1_id = elasticfunc.find_id_doc(data['index1'], indexes)
+    index1_id = elasticfunc.find_id_doc(data['index1']['data'], index1_indexes)
     index2_id = None
     if 'index2' in data:
         if data['index2'] != "":
-            index2_id = elasticfunc.find_id_doc(data['index2'], indexes)
+            index2_indexes = elasticfunc.get_indexes(data['index2']['is_person'], data['index2']['is_company'])
+            if len(index2_indexes) <= 0:
+                return {"message": "Error: Don't select type obj found"}
+            index2_id = elasticfunc.find_id_doc(data['index2']['data'], index2_indexes)
 
     #TODO: Запрос к postgres
     print(index1_id, index2_id)

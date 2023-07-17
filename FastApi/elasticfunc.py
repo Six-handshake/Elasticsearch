@@ -8,6 +8,7 @@ es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
 #es = Elasticsearch(hosts="http://localhost:9200")
 
+default_indexes = ['private_face', 'legal_face']
 
 def old_get_data_id(doc_id: str) -> dict:
     resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
@@ -16,6 +17,14 @@ def old_get_data_id(doc_id: str) -> dict:
 def get_data_id(doc_id: str) -> dict:
     resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
     return resp
+
+def get_indexes(is_person:bool, is_company:bool)->list:
+    indexes = []
+    if is_person:
+        indexes.append(default_indexes[0])
+    if is_company:
+        indexes.append(default_indexes[1])
+    return indexes
 
 def get_data_text(full_text: str):
     print(full_text)
