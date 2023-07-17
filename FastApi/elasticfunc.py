@@ -119,10 +119,21 @@ def create_node(obj_id:str, depth_x:str, depth_y:str,child_id:str = "") -> dict:
     res['is_child'] = True if child_id == "" else False
     return res
 
-def create_edge(item: dict):
-    return {'parent_id': item['child']+"_"+item['parent'],
-            'child_id': item['child'],
-            'kind': item['kind']}
+def create_edge(item: dict) -> list:
+    edges = [{'parent_id': item['child'] + "_" + item['parent'],
+              'child_id': item['child'],
+              'kind': item['kind'],
+              'share': item['share'],
+              'date_begin': item['date_begin'],
+              'date_end': item['date_end']}]
+    for link in item["links"]:
+        edges.append({'parent_id': link['child_id'] + "_" + item['parent'],
+                      'child_id': item['child'],
+                      'kind': item['kind'],
+                      'share': item['share'],
+                      'date_begin': item['date_begin'],
+                      'date_end': item['date_end']})
+    return edges
 
 def filling_data_v2(data:list) -> list:
     nodes = []
@@ -145,8 +156,9 @@ def filling_data_v2(data:list) -> list:
                                  depth_y = depth_y,
                                  child_id = item['child']))
         depth_y+=1
-        edge.append(create_edge(item))
+        edge += create_edge(item)
     return nodes, edge
+
 
 # test
 # print(get_data_id(6434))
