@@ -5,8 +5,7 @@ from typing import Union
 import json
 import elasticfunc
 from pprint import pprint
-sys.path.append('/home/serv/postgre/Postgres/src')
-sys.path.append('/home/serv/elasticsearch/Elasticsearch')
+sys.path.append('/home/serv/elasticsearch/Elasticsearch/Postgres/src')
 import json_loader
 app = FastAPI()
 
@@ -105,6 +104,7 @@ async def get_doc_for_text(data: dict, f_company: bool = False, f_person: bool =
     res = None
     if index2_id is not None:
         data = json_loader.generate_json(index1_id, index2_id)
+        print(data)
     else:
         pass
     if data != "null":

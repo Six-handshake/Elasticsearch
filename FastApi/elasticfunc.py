@@ -126,6 +126,8 @@ def create_edge(item: dict):
 
 def filling_data_v2(data:list) -> list:
     nodes = []
+    print("------------------------------")
+    pprint(data)
     edge = []
     last_child = -1
     last_depth = -1
