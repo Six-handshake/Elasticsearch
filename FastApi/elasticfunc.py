@@ -8,6 +8,7 @@ es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
 #es = Elasticsearch(hosts="http://localhost:9200")
 
+default_indexes = ['private_face', 'legal_face']
 
 def old_get_data_id(doc_id: str) -> dict:
     resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
@@ -16,6 +17,14 @@ def old_get_data_id(doc_id: str) -> dict:
 def get_data_id(doc_id: str) -> dict:
     resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
     return resp
+
+def get_indexes(is_person:bool, is_company:bool)->list:
+    indexes = []
+    if is_person:
+        indexes.append(default_indexes[0])
+    if is_company:
+        indexes.append(default_indexes[1])
+    return indexes
 
 def get_data_text(full_text: str):
     print(full_text)
@@ -119,10 +128,21 @@ def create_node(obj_id:str, depth_x:str, depth_y:str,child_id:str = "") -> dict:
     res['is_child'] = True if child_id == "" else False
     return res
 
-def create_edge(item: dict):
-    return {'parent_id': item['child']+"_"+item['parent'],
-            'child_id': item['child'],
-            'kind': item['kind']}
+def create_edge(item: dict) -> list:
+    edges = [{'parent_id': item['child'] + "_" + item['parent'],
+              'child_id': item['child'],
+              'kind': item['kind'],
+              'share': item['share'],
+              'date_begin': item['date_begin'],
+              'date_end': item['date_end']}]
+    for link in item["links"]:
+        edges.append({'parent_id': link['child_id'] + "_" + item['parent'],
+                      'child_id': item['child'],
+                      'kind': item['kind'],
+                      'share': item['share'],
+                      'date_begin': item['date_begin'],
+                      'date_end': item['date_end']})
+    return edges
 
 def filling_data_v2(data:list) -> list:
     nodes = []
@@ -145,8 +165,9 @@ def filling_data_v2(data:list) -> list:
                                  depth_y = depth_y,
                                  child_id = item['child']))
         depth_y+=1
-        edge.append(create_edge(item))
+        edge += create_edge(item)
     return nodes, edge
+
 
 # test
 # print(get_data_id(6434))
