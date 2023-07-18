@@ -57,35 +57,49 @@ def find_id_doc(full_text: str, indexes = ['private_face','legal_face']):
         return 'Not Found'
 
 def find_doc_filter(full_text: str, regions:list=[], okveds:list = [], indexes = ['private_face','legal_face']):
-    tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
-    query = [{"multi_match":
-                  {'query': token['token'],
-                   'fields': "*"}}
-             for token in tokens]
-    resp = es.search(index=indexes, query={
-        "bool": {
-            "should": [{
-                "multi_match":{
-                    "query": full_text,
-                    'fields': ["inn", 'name', 'first_name','last_name', 'patronymic'],
-                    "auto_generate_synonyms_phrase_query": True,
-                    "fuzziness": 2,
-                    #"minimum_should_match": "70%",
-                    "operator": "or"
-                }
-            }],
-            "minimum_should_match": 1,
-            "filter":[
-                {"terms":{"region":regions}},
-                {"terms":{"okved":okveds}}
-            ]
-        }
-    })
+    resp = es.search(index=indexes, size=10, query=get_filter_query(full_text, okveds, regions))
     pprint(resp)
     if resp['hits']['total']['value'] != 0:
-        return resp["hits"]["hits"][0]["_source"]
+        pprint(resp["hits"]["hits"])
+        return get_list_names(resp["hits"]["hits"])
     else:
-        return {'message':'Not Found'}
+        return []
+
+def get_list_names(data:list) -> list:
+    result = []
+    for item in data:
+        source = item['_source']
+        if item['_index'] == 'legal_face':
+            result.append(' '.join([source['name'], source['inn']]))
+        elif item['_index'] == 'private_face':
+            result.append(' '.join([source['first_name'], source['last_name'], source['patronymic'],source['inn']]))
+
+    return result
+
+
+def get_filter_query(full_text, okveds, regions):
+    pprint(full_text)
+    main_query = {
+        "bool": {
+            "should": {
+                "multi_match": {
+                    "query": full_text,
+                    'fields': ["inn", 'name', 'first_name', 'last_name', 'patronymic'],
+                    "auto_generate_synonyms_phrase_query": True,
+                    "fuzziness": 2,
+                    "operator": "and"
+                }
+            },
+            "minimum_should_match": 1,
+        }
+    }
+    if len(okveds) > 0 or len(regions) > 0:
+        main_query["bool"]["filter"] = []
+        if len(okveds) > 0:
+            main_query["bool"]["filter"].append({"terms": {"okved": okveds}})
+        if len(regions) > 0:
+            main_query["bool"]["filter"].append({"terms": {"region": regions}})
+    return main_query
 
 
 def get_response(indexes, tokens):

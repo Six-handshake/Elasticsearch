@@ -459,12 +459,12 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     print("start")
     return elasticfunc.get_data_id(doc_id)
 
-@app.post("/api/test_filter", tags=["test"])
-async def get_test_filter(data: dict, regions:list = [], okved:list = []) -> dict:
-    return elasticfunc.find_doc_filter(data['index1'], regions, okved)
+@app.post("/api/find_path", tags=["main"])
+async def get_test_filter(text: str, regions:list = [], okved:list = []) -> list:
+    return elasticfunc.find_doc_filter(text, regions, okved)
 
 
-@app.post("/api/find", tags=["main(test)"])
+@app.post("/api/find", tags=["main"])
 async def get_doc_for_text(data: dict) -> dict:
     index1_indexes = elasticfunc.get_indexes(data['index1']['is_person'], data['index1']['is_company'])
     if len(index1_indexes) <= 0:
