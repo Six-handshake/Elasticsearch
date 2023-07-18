@@ -450,8 +450,6 @@ async def test_front_v1() -> list:
 @app.get('/api/front_v2',tags=['front-test'])
 async def test_front_v2() -> dict:
     nodes, edges = elasticfunc.filling_data_v2(test_data_from_db)
-    pprint(nodes)
-    pprint(edges)
     return {"nodes": nodes,
             "edges": edges}
 
@@ -478,10 +476,6 @@ async def get_doc_for_text(data: dict) -> dict:
             if len(index2_indexes) <= 0:
                 return {"message": "Error: Don't select type obj found"}
             index2_id = elasticfunc.find_id_doc(data['index2']['data'], index2_indexes)
-
-    #TODO: Запрос к postgres
-    print(index1_id, index2_id)
-    res = None
     if index2_id is not None:
         data = json_loader.generate_json(index1_id, index2_id)
     else:
