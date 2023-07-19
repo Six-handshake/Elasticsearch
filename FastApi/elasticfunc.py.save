@@ -45,7 +45,7 @@ def check_response(resp):
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_source"]
     else:
-        return {}
+        return {'message': 'Not Found'}
 
 
 def find_id_doc(full_text: str, indexes = ['private_face','legal_face']):
@@ -54,7 +54,7 @@ def find_id_doc(full_text: str, indexes = ['private_face','legal_face']):
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_id"]
     else:
-        return ""
+        return 'Not Found'
 
 def find_doc_filter(full_text: str, regions:list=[], okveds:list = [], indexes = ['private_face','legal_face']):
     resp = es.search(index=indexes, size=10, query=get_filter_query(full_text, okveds, regions))
@@ -169,7 +169,7 @@ def filling_data_v2(data:list) -> list:
     for item in data:
         if last_depth != item['depth']:
             depth_y = 0
-            last_depth = item['depth']
+            last_depth = item['depth']c
         if item['child'] != last_child:
             nodes.append(create_node(obj_id = item['child'],
                                      depth_x = item['depth'],
