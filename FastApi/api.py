@@ -459,7 +459,10 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     return elasticfunc.get_data_id(doc_id)
 
 @app.post("/api/find_path", tags=["main"])
-async def get_test_filter(text: str, regions:list = [], okved:list = []) -> list:
+async def get_test_filter(data:dict) -> list:
+    text = data['text']
+    regions = data['regions'] if 'regions' in data else []
+    okved = data['okved'] if 'okved' in data else []
     return elasticfunc.find_doc_filter(text, regions, okved)
 
 

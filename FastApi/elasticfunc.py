@@ -57,38 +57,55 @@ def find_id_doc(full_text:str, indexes:list = default_indexes) -> str:
         return 'Not Found'
 
 def find_doc_filter(full_text:str, regions:list=[], okveds:list = [], indexes:list = default_indexes) -> list:
-    resp = es.search(index=indexes, size=10, query=get_filter_query(full_text, okveds, regions))
+    #как объединить???
+    tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
+    resp = es.search(index=indexes, size=10, query=get_filter_query(tokens, okveds, regions))
     pprint(resp)
     if resp['hits']['total']['value'] != 0:
-        return get_list_names(resp["hits"]["hits"])
+        return get_variants_dict(resp["hits"]["hits"])
     else:
         return []
 
-def get_list_names(data:list) -> list:
+def get_variants_dict(data:list) -> list:
     result = []
     for item in data:
+        obj = {}
         source = item['_source']
+        pprint(item['_source'])
         if item['_index'] == 'legal_face':
-            result.append(' '.join([source['name'], source['inn']]))
+            obj['text'] = source['name']
+            obj['is_person'] = False
+            obj['is_company'] = True
         elif item['_index'] == 'private_face':
-            result.append(' '.join([source['first_name'], source['last_name'], source['patronymic'],source['inn']]))
-
+            obj['text'] = ' '.join([source['firstname'], source['lastname'], source['patronymyic']])
+            obj['is_person'] = False
+            obj['is_company'] = True
+        obj['inn'] = source['inn']
+        obj['okved'] = source['okved']
+        obj['region'] = source['region']
+        result.append(obj)
     return result
 
 
-def get_filter_query(full_text:str, okveds:list = [], regions:list = []) -> dict:
+def get_filter_query(tokens:list, okveds:list = [], regions:list = []) -> dict:
+    pprint(tokens)
+    query = [{"multi_match": {'query': token['token'],
+                              'type': 'phrase_prefix',
+                              'fields': ["inn^5", 'name^4', 'first_name^3', 'last_name^4', 'patronymic']}}
+              for token in tokens]
+    text = ' '.join([item['token'] for item in tokens])
+    tokens = es.indices.analyze(analyzer="russian", field='text', text=text)['tokens']
+    pprint(tokens)
+    query += [{"multi_match": {'query': token['token'],
+                              'type': 'phrase_prefix',
+                              'fields': ["inn", 'name', 'first_name', 'last_name', 'patronymic']}
+               }
+             for token in tokens]
+    minimum_match = str(len(tokens))+"<80%"
     main_query = {
         "bool": {
-            "should": {
-                "multi_match": {
-                    "query": full_text,
-                    'fields': ["inn", 'name', 'first_name', 'last_name', 'patronymic'],
-                    "auto_generate_synonyms_phrase_query": True,
-                    "fuzziness": 2,
-                    "operator": "and"
-                }
-            },
-            "minimum_should_match": 1,
+            "should": query,
+            "minimum_should_match": minimum_match,
         }
     }
     if len(okveds) > 0 or len(regions) > 0:
