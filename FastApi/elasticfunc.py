@@ -77,7 +77,7 @@ def get_variants_dict(data:list) -> list:
             obj['is_person'] = False
             obj['is_company'] = True
         elif item['_index'] == 'private_face':
-            obj['text'] = ' '.join([source['firstname'], source['lastname'], source['patronymyic']])
+            obj['text'] = ' '.join([source['firstname'], source['lastname'], source['patronymic']])
             obj['is_person'] = False
             obj['is_company'] = True
         obj['inn'] = source['inn']
