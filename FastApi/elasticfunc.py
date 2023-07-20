@@ -4,9 +4,9 @@ import requests
 from pprint import pprint
 import json
 #On local connect pc
-es = Elasticsearch(hosts="http://46.48.3.74:9200")
+#es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
-#es = Elasticsearch(hosts="http://localhost:9200")
+es = Elasticsearch(hosts="http://localhost:9200")
 
 default_indexes = ['private_face', 'legal_face']
 
@@ -45,7 +45,7 @@ def check_response(resp:dict) -> dict:
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_source"]
     else:
-        return {'message': 'Not Found'}
+        return {}
 
 
 def find_id_doc(full_text:str, indexes:list = default_indexes) -> str:
@@ -54,7 +54,7 @@ def find_id_doc(full_text:str, indexes:list = default_indexes) -> str:
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_id"]
     else:
-        return 'Not Found'
+        return ""
 
 def find_doc_filter(full_text:str, regions:list=[], okveds:list = [], indexes:list = default_indexes) -> list:
     #как объединить???
@@ -159,8 +159,8 @@ def create_edge(item:dict) -> list:
               'date_begin': item['date_begin'],
               'date_end': item['date_end']}]
     for link in item["links"]:
-        edges.append({'parent_id': link['child_id'] + "_" + item['parent'],
-                      'child_id': item['child'],
+        edges.append({'parent_id': item['child'],
+                      'child_id': link['child_id'] + '_' + item['parent'],
                       'kind': item['kind'],
                       'share': item['share'],
                       'date_begin': item['date_begin'],
@@ -169,6 +169,8 @@ def create_edge(item:dict) -> list:
 
 def filling_data_v2(data:list) -> list:
     nodes = []
+    print("------------------------------")
+    pprint(data)
     edge = []
     last_child = -1
     last_depth = -1
