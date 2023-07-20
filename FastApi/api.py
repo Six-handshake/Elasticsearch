@@ -6,7 +6,7 @@ import json
 import elasticfunc
 from pprint import pprint
 sys.path.append('/home/serv/elasticsearch/Elasticsearch/Postgres/src')
-import json_loader
+#import json_loader
 app = FastAPI()
 
 # React connects
@@ -68,8 +68,6 @@ async def test_front_v1() -> list:
 async def test_front_v2() -> dict:
     pprint(test_data_from_db)
     nodes, edges = elasticfunc.filling_data_v2(test_data_from_db)
-    pprint(nodes)
-    pprint(edges)
     return {"nodes": nodes,
             "edges": edges}
 
@@ -79,13 +77,15 @@ async def get_doc_for_id(doc_id: str, q: Union[str, None] = None) -> dict:
     return elasticfunc.get_data_id(doc_id)
 
 @app.post("/api/find_path", tags=["main"])
-async def get_test_filter(text: str, regions:list = [], okved:list = []) -> list:
+async def get_test_filter(data:dict) -> list:
+    text = data['text']
+    regions = data['regions'] if 'regions' in data else []
+    okved = data['okved'] if 'okved' in data else []
     return elasticfunc.find_doc_filter(text, regions, okved)
 
 
 @app.post("/api/find", tags=["main"])
 async def get_doc_for_text(data: dict) -> dict:
-    print(data)
     index1_indexes = elasticfunc.get_indexes(data['index1']['is_person'], data['index1']['is_company'])
     if len(index1_indexes) <= 0:
         raise HTTPException(status_code=404,detail="Error: Don't select type obj found")
@@ -107,7 +107,6 @@ async def get_doc_for_text(data: dict) -> dict:
     res = None
     if index2_id is not None:
         data = json_loader.generate_json(index1_id, index2_id)
-        print(data)
     else:
         pass
     if data != "null":

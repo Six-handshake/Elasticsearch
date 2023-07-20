@@ -10,15 +10,15 @@ es = Elasticsearch(hosts="http://localhost:9200")
 
 default_indexes = ['private_face', 'legal_face']
 
-def old_get_data_id(doc_id: str) -> dict:
+def old_get_data_id(doc_id:str) -> dict:
     resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
     return check_response(resp)
 
-def get_data_id(doc_id: str) -> dict:
+def get_data_id(doc_id:str) -> dict:
     resp = es.search(index=['private_face','legal_face'], query={'bool':{'must':{'match':{'_id':doc_id}}}})
     return resp
 
-def get_indexes(is_person:bool, is_company:bool)->list:
+def get_indexes(is_person:bool, is_company:bool) -> list:
     indexes = []
     if is_person:
         indexes.append(default_indexes[0])
@@ -26,7 +26,7 @@ def get_indexes(is_person:bool, is_company:bool)->list:
         indexes.append(default_indexes[1])
     return indexes
 
-def get_data_text(full_text: str):
+def get_data_text(full_text:str) -> dict:
     print(full_text)
     tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
     query = [{"multi_match":
@@ -41,14 +41,14 @@ def get_data_text(full_text: str):
     return check_response(resp)
 
 
-def check_response(resp):
+def check_response(resp:dict) -> dict:
     if resp['hits']['total']['value'] != 0:
         return resp["hits"]["hits"][0]["_source"]
     else:
         return {}
 
 
-def find_id_doc(full_text: str, indexes = ['private_face','legal_face']):
+def find_id_doc(full_text:str, indexes:list = default_indexes) -> str:
     tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
     resp = get_response(indexes, tokens)
     if resp['hits']['total']['value'] != 0:
@@ -56,41 +56,56 @@ def find_id_doc(full_text: str, indexes = ['private_face','legal_face']):
     else:
         return ""
 
-def find_doc_filter(full_text: str, regions:list=[], okveds:list = [], indexes = ['private_face','legal_face']):
-    resp = es.search(index=indexes, size=10, query=get_filter_query(full_text, okveds, regions))
+def find_doc_filter(full_text:str, regions:list=[], okveds:list = [], indexes:list = default_indexes) -> list:
+    #как объединить???
+    tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
+    resp = es.search(index=indexes, size=10, query=get_filter_query(tokens, okveds, regions))
     pprint(resp)
     if resp['hits']['total']['value'] != 0:
-        pprint(resp["hits"]["hits"])
-        return get_list_names(resp["hits"]["hits"])
+        return get_variants_dict(resp["hits"]["hits"])
     else:
         return []
 
-def get_list_names(data:list) -> list:
+def get_variants_dict(data:list) -> list:
     result = []
     for item in data:
+        obj = {}
         source = item['_source']
+        pprint(item['_source'])
         if item['_index'] == 'legal_face':
-            result.append(' '.join([source['name'], source['inn']]))
+            obj['text'] = source['name']
+            obj['is_person'] = False
+            obj['is_company'] = True
         elif item['_index'] == 'private_face':
-            result.append(' '.join([source['first_name'], source['last_name'], source['patronymic'],source['inn']]))
-
+            obj['text'] = ' '.join([source['firstname'], source['lastname'], source['patronymic']])
+            obj['is_person'] = False
+            obj['is_company'] = True
+        obj['inn'] = source['inn']
+        obj['okved'] = source['okved']
+        obj['region'] = source['region']
+        result.append(obj)
     return result
 
 
-def get_filter_query(full_text, okveds, regions):
-    pprint(full_text)
+def get_filter_query(tokens:list, okveds:list = [], regions:list = []) -> dict:
+    pprint(tokens)
+    query = [{"multi_match": {'query': token['token'],
+                              'type': 'phrase_prefix',
+                              'fields': ["inn^5", 'name^4', 'first_name^3', 'last_name^4', 'patronymic']}}
+              for token in tokens]
+    text = ' '.join([item['token'] for item in tokens])
+    tokens = es.indices.analyze(analyzer="russian", field='text', text=text)['tokens']
+    pprint(tokens)
+    query += [{"multi_match": {'query': token['token'],
+                              'type': 'phrase_prefix',
+                              'fields': ["inn", 'name', 'first_name', 'last_name', 'patronymic']}
+               }
+             for token in tokens]
+    minimum_match = str(len(tokens))+"<80%"
     main_query = {
         "bool": {
-            "should": {
-                "multi_match": {
-                    "query": full_text,
-                    'fields': ["inn", 'name', 'first_name', 'last_name', 'patronymic'],
-                    "auto_generate_synonyms_phrase_query": True,
-                    "fuzziness": 2,
-                    "operator": "and"
-                }
-            },
-            "minimum_should_match": 1,
+            "should": query,
+            "minimum_should_match": minimum_match,
         }
     }
     if len(okveds) > 0 or len(regions) > 0:
@@ -102,20 +117,14 @@ def get_filter_query(full_text, okveds, regions):
     return main_query
 
 
-def get_response(indexes, tokens):
-    query = [{"multi_match":
-                  {'query': token['token'],
-                   'fields': "*"}}
+def get_response(indexes:list, tokens:list) -> dict:
+    query = [{"multi_match":{'query': token['token'],'fields': "*"}}
              for token in tokens]
     if 'legal_face' in indexes:
         pass
             #query.append({'match': {'region' : region}})
     pprint(query)
-    resp = es.search(index=indexes, query={
-        "bool": {
-            "must": query
-        }
-    })
+    resp = es.search(index=indexes, query={"bool": {"must": query}})
     return resp
 
 
@@ -142,7 +151,7 @@ def create_node(obj_id:str, depth_x:str, depth_y:str,child_id:str = "") -> dict:
     res['is_child'] = True if child_id == "" else False
     return res
 
-def create_edge(item: dict) -> list:
+def create_edge(item:dict) -> list:
     edges = [{'parent_id': item['child'] + "_" + item['parent'],
               'child_id': item['child'],
               'kind': item['kind'],
@@ -183,19 +192,3 @@ def filling_data_v2(data:list) -> list:
         depth_y+=1
         edge += create_edge(item)
     return nodes, edge
-
-
-# test
-# print(get_data_id(6434))
-# print(get_data_all_info(inn="7712345678904", lastname="Шульц"))
-# print(get_data_all_info(inn="7712345678900"))
-# print(get_data_text("Владew Тарасович"))
-# test_data_from_db = [{"child": "73", "parent": "16", "kind": "1", "depth": 0}, {"child": "73", "parent": "95", "kind": "1", "depth": 0}, {"child": "73", "parent": "300", "kind": "1", "depth": 0}, {"child": "73", "parent": "38", "kind": "1", "depth": 0}, {"child": "73", "parent": "64", "kind": "1", "depth": 0}, {"child": "73", "parent": "282", "kind": "1", "depth": 0}, {"child": "73", "parent": "133", "kind": "2", "depth": 0}, {"child": "179", "parent": "84", "kind": "1", "depth": 1}, {"child": "179", "parent": "162", "kind": "1", "depth": 1}, {"child": "179", "parent": "223", "kind": "1", "depth": 1}, {"child": "179", "parent": "16", "kind": "1", "depth": 1}, {"child": "179", "parent": "46", "kind": "1", "depth": 1}, {"child": "179", "parent": "238", "kind": "1", "depth": 1}, {"child": "179", "parent": "238", "kind": "1", "depth": 1}, {"child": "179", "parent": "123", "kind": "1", "depth": 1}, {"child": "179", "parent": "74", "kind": "1", "depth": 1}, {"child": "179", "parent": "31", "kind": "1", "depth": 1}, {"child": "179", "parent": "257", "kind": "2", "depth": 1}, {"child": "124", "parent": "70", "kind": "1", "depth": 1}, {"child": "124", "parent": "210", "kind": "1", "depth": 1}, {"child": "124", "parent": "95", "kind": "1", "depth": 1}, {"child": "124", "parent": "220", "kind": "1", "depth": 1}, {"child": "124", "parent": "196", "kind": "1", "depth": 1}, {"child": "124", "parent": "141", "kind": "2", "depth": 1}, {"child": "220", "parent": "246", "kind": "1", "depth": 1}, {"child": "220", "parent": "217", "kind": "1", "depth": 1}, {"child": "220", "parent": "3", "kind": "1", "depth": 1}, {"child": "220", "parent": "20", "kind": "1", "depth": 1}, {"child": "220", "parent": "2", "kind": "1", "depth": 1}, {"child": "220", "parent": "16", "kind": "2", "depth": 1}, {"child": "147", "parent": "224", "kind": "1", "depth": 1}, {"child": "147", "parent": "128", "kind": "1", "depth": 1}, {"child": "147", "parent": "282", "kind": "1", "depth": 1}, {"child": "147", "parent": "10", "kind": "1", "depth": 1}, {"child": "147", "parent": "296", "kind": "1", "depth": 1}, {"child": "147", "parent": "37", "kind": "1", "depth": 1}, {"child": "147", "parent": "82", "kind": "1", "depth": 1}, {"child": "147", "parent": "30", "kind": "1", "depth": 1}, {"child": "147", "parent": "257", "kind": "1", "depth": 1}, {"child": "147", "parent": "12", "kind": "1", "depth": 1}, {"child": "147", "parent": "174", "kind": "1", "depth": 1}, {"child": "147", "parent": "1", "kind": "2", "depth": 1}, {"child": "298", "parent": "193", "kind": "1", "depth": 1}, {"child": "298", "parent": "133", "kind": "1", "depth": 1}, {"child": "298", "parent": "279", "kind": "1", "depth": 1}, {"child": "298", "parent": "139", "kind": "1", "depth": 1}, {"child": "298", "parent": "214", "kind": "1", "depth": 1}, {"child": "298", "parent": "196", "kind": "1", "depth": 1}, {"child": "298", "parent": "74", "kind": "1", "depth": 1}, {"child": "298", "parent": "7", "kind": "2", "depth": 1}, {"child": "76", "parent": "246", "kind": "1", "depth": 2}, {"child": "76", "parent": "74", "kind": "1", "depth": 2}, {"child": "76", "parent": "294", "kind": "1", "depth": 2}, {"child": "76", "parent": "128", "kind": "1", "depth": 2}, {"child": "76", "parent": "196", "kind": "2", "depth": 2}]
-
-#print(filling_data([{'child' : 1, 'parent' : 2, 'kind' : 1, 'depth' : 1}, {'child' : 2, 'parent' : 3, 'kind' : 1, 'depth' : 2}]))
-#pprint(filling_data(test_data_from_db))
-#print("\n\n")
-#print("--------------------------------------------------------------------------")
-#print("\n\n")
-#pprint(filling_data_v2(test_data_from_db)
-#pprint(find_id_doc("Влад Тарасович"))
