@@ -4,9 +4,9 @@ import requests
 from pprint import pprint
 import json
 #On local connect pc
-#es = Elasticsearch(hosts="http://46.48.3.74:9200")
+es = Elasticsearch(hosts="http://46.48.3.74:9200")
 #On server connect
-es = Elasticsearch(hosts="http://localhost:9200")
+#es = Elasticsearch(hosts="http://localhost:9200")
 
 default_indexes = ['private_face', 'legal_face']
 
@@ -56,10 +56,10 @@ def find_id_doc(full_text:str, indexes:list = default_indexes) -> str:
     else:
         return ""
 
-def find_doc_filter(full_text:str, regions:list=[], okveds:list = [], indexes:list = default_indexes) -> list:
+def find_doc_filter(full_text:str, regions:list=[], okveds:list = [], indexes:list = default_indexes, sort:str= "profit") -> list:
     #как объединить???
     tokens = es.indices.analyze(analyzer="standard", field='text', text=full_text)['tokens']
-    resp = es.search(index=indexes, size=10, query=get_filter_query(tokens, okveds, regions))
+    resp = es.search(index=indexes, size=10, query=get_filter_query(tokens, okveds, regions), sort=f"{sort}")
     pprint(resp)
     if resp['hits']['total']['value'] != 0:
         return get_variants_dict(resp["hits"]["hits"])

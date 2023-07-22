@@ -81,7 +81,8 @@ async def get_test_filter(data:dict) -> list:
     text = data['text']
     regions = data['regions'] if 'regions' in data else []
     okved = data['okved'] if 'okved' in data else []
-    return elasticfunc.find_doc_filter(text, regions, okved)
+    sort = data['sort'] if 'sort' in data else ""
+    return elasticfunc.find_doc_filter(text, regions, okved, sort)
 
 
 @app.post("/api/find", tags=["main"])
